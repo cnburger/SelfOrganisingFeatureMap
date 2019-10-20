@@ -115,7 +115,12 @@ barplot(table(guns.transf$State),las = 2)
 dev.new()
 hist(guns.transf$Victim_Age, freq = F, main = c("Histogram of Victim Age"), xlab= 'Victim Age', ylim = c(0,0.04) )
 lines(density(x = na.omit(guns.transf$Victim_Age)), col = 'blue', lwd = 2)
+
+summary(guns.transf$Victim_Age)
+
 #NA omitted
+
+
 
 
 #AgeGroup
@@ -190,25 +195,37 @@ length(unique(guns.transf$Killed_week))
 
 
 
+#-------DROPPING FINAL VARIABLES
+colnames(guns.transf)
+#Dropping final variables
+guns.transf <- guns.transf[,-c(1,4,6,7,28)]
+colnames(guns.transf)
+
 
 ####------------------Function for dummies --------------------------
-colnames(guns.transf)
-matwithDummy <- createDummyFeatures(guns.transf, cols = c("City","State", "Victim_AgeGrp","Victim_Gender","LG_SP","LG_FR","LG_AL",
+
+
+matwithDummy <- createDummyFeatures(guns.transf, cols = c("State","Victim_Gender","LG_SP","LG_FR","LG_AL",
                                           "LG_OL" ,"LG_CP","LG_OC","LG_SLR","LG_NFAR","LG_PJ","HG_SP","HG_PJ",
                                           "HG_FR","HG_AL","HG_OL","HG_CP","HG_OC","HG_SLR","HG_NFAR"))
+matforSOG <- as.matrix(matwithDummy)
 #Variables with "V1" in its name had missing values
 str(matwithDummy)
 
-matforSOG <- as.matrix(matwithDummy)
+colnames(matwithDummy)
+
 
 #####---------Data processing for the SOM
 ads.train <- as.matrix(scale(matforSOG))
 ads.grid <- kohonen::somgrid(xdim = 30, ydim = 30, topo = "hexagonal")
 ads.model <- supersom(ads.train, ads.grid, rlen =200, radius = 2.5, keep.data = TRUE, dist.fcts = "euclidean")
 
-getAnywhere(toroidal)
+
+?somgrid
 
 str(ads.model)
+
+dev.new()
 plot(ads.model)
 
 ads.model$unit.classif
@@ -238,7 +255,7 @@ heatmap.som(ads.model)
 
 
 fviz_nbclust(ads.model$codes[[1]], kmeans, method = "wss")
-clust <- kmeans(ads.model$codes[[1]], 4)
+clust <- kmeans(ads.model$codes[[1]], 7)
 
 dev.new()
 plot(ads.model, type = "codes", bgcol = rainbow(16)[clust$cluster], main = "Cluster Map")
